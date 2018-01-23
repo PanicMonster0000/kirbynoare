@@ -1,13 +1,18 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour {
     [SerializeField] private Vector3 velocity;              // 移動方向
-
+    int stocks = 5;
+    bool invincibleflag = false;
+    float deathtime;
+    public Rigidbody rb;
+    public Text hp;
     // Use this for initialization
     void Start () {
-		
+		rb = GetComponent<Rigidbody>();
 	}
 	
 	// Update is called once per frame
@@ -34,6 +39,35 @@ public class Player : MonoBehaviour {
             // プレイヤーの位置(transform.position)の更新
             // 移動方向ベクトル(velocity)を足し込みます
             transform.position += velocity;
+        }
+        if (transform.position.y < -60) {
+            stocks--;
+            print(stocks);
+            if(stocks == 0) {
+                Destroy(gameObject);
+                hp.text = "";
+            } else {
+                Vector3 pos = transform.position;
+                pos.x = Random.Range(5,75);
+                pos.y = 10;
+                pos.z = Random.Range(5,75);
+                transform.position = pos;
+                deathtime = Time.time;
+                rb.useGravity = false;
+                rb.constraints = RigidbodyConstraints.FreezePositionY;
+                invincibleflag = true;
+                hp.text = "";
+                for(int i=0;i<stocks;i++) {
+                    hp.text += "■";
+                }
+            }
+        }
+        if(invincibleflag){
+            if((deathtime + 3) < Time.time){
+                rb.useGravity = true;
+                invincibleflag = false;
+                rb.constraints = RigidbodyConstraints.None;
+            }
         }
     }
 }

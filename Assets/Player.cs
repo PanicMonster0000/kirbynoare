@@ -10,6 +10,10 @@ public class Player : MonoBehaviour {
     float deathtime;
     public Rigidbody rb;
     public Text hp;
+    public GameObject attackEffect;
+    bool allowAttack = true;
+    float attackInterval;
+
     // Use this for initialization
     void Start () {
 		rb = GetComponent<Rigidbody>();
@@ -19,15 +23,42 @@ public class Player : MonoBehaviour {
 	void Update () {
         // WASD入力から、XZ平面(水平な地面)を移動する方向(velocity)を得ます
         velocity = Vector3.zero;
-        if (Input.GetKey(KeyCode.W))
-            velocity.z += 1;
-        if (Input.GetKey(KeyCode.A))
-            velocity.x -= 1;
-        if (Input.GetKey(KeyCode.S))
-            velocity.z -= 1;
-        if (Input.GetKey(KeyCode.D))
-            velocity.x += 1;
 
+            if (Input.GetKey(KeyCode.W)) 
+                velocity.z += 1;
+            else if (Input.GetKey(KeyCode.A))
+                velocity.x -= 1;
+            else if (Input.GetKey(KeyCode.S))
+                velocity.z -= 1;
+            else if (Input.GetKey(KeyCode.D))
+                velocity.x += 1;
+
+
+
+        //攻撃処理
+
+        if (Input.GetKey(KeyCode.Space) && allowAttack){
+            GameObject attackObject = Instantiate(attackEffect) as GameObject; 
+           
+            float x = Mathf.Round(transform.position.x/10)*10;
+            float z = Mathf.Round(transform.position.z/10)*10;
+
+
+            Vector3 forword = transform.forward * -10;
+            attackObject.transform.position = new Vector3(x, transform.position.y-0.5f, z) + forword;
+
+            Quaternion rotation = this.transform.localRotation;
+            Vector3 rotationAngles = rotation.eulerAngles;
+            rotationAngles.x = rotationAngles.x + 90.0f;
+            rotationAngles.z = rotationAngles.z + 90.0f;
+            rotationAngles.y = rotationAngles.y + -90.0f;
+
+            rotation = Quaternion.Euler(rotationAngles);
+            attackObject.transform.localRotation = rotation;
+
+            attackInterval = Time.time;
+            allowAttack = false;
+        }
 
         // いずれかの方向に移動している場合
         if (velocity.magnitude > 0)
@@ -67,7 +98,16 @@ public class Player : MonoBehaviour {
                 rb.useGravity = true;
                 invincibleflag = false;
                 rb.constraints = RigidbodyConstraints.None;
+                rb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotation;
             }
         }
+
+        //攻撃のインターバル
+        if (!(allowAttack)){
+            if( (attackInterval+1.5) < Time.time){
+                allowAttack = true;
+            }
+        }
+
     }
 }

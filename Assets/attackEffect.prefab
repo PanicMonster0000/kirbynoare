@@ -24,6 +24,8 @@ GameObject:
   - component: {fileID: 23297450049877414}
   - component: {fileID: 54017372052849724}
   - component: {fileID: 114406740082601540}
+  - component: {fileID: 114875136898581584}
+  - component: {fileID: 114762361080708808}
   m_Layer: 8
   m_Name: attackEffect
   m_TagString: Untagged
@@ -123,3 +125,56 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b82997ef77513e478d9a62ebd8be3d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &114762361080708808
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1835355454052320}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1768714887, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_TransformSyncMode: 1
+  m_SendInterval: 0.033333335
+  m_SyncRotationAxis: 7
+  m_RotationSyncCompression: 0
+  m_SyncSpin: 0
+  m_MovementTheshold: 0.001
+  m_VelocityThreshold: 0.0001
+  m_SnapThreshold: 5
+  m_InterpolateRotation: 1
+  m_InterpolateMovement: 1
+--- !u!114 &114875136898581584
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1835355454052320}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 372142912, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SceneId:
+    m_Value: 0
+  m_AssetId:
+    i0: 244
+    i1: 143
+    i2: 109
+    i3: 199
+    i4: 105
+    i5: 245
+    i6: 76
+    i7: 180
+    i8: 25
+    i9: 36
+    i10: 144
+    i11: 204
+    i12: 210
+    i13: 7
+    i14: 167
+    i15: 234
+  m_ServerOnly: 0
+  m_LocalPlayerAuthority: 0

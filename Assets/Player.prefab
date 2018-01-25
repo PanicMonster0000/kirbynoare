@@ -199,7 +199,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   velocity: {x: 0, y: 0, z: 0}
   rb: {fileID: 0}
-  hp: {fileID: 0}
+  hp: {fileID: 114105841301247710, guid: b32b11111af736b42ac8b590d9b5d106, type: 2}
   attackEffect: {fileID: 1835355454052320, guid: f48f6dc769f54cb4192490ccd207a7ea,
     type: 2}
 --- !u!114 &114679420041100576

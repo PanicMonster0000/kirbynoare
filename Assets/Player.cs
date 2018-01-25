@@ -8,12 +8,12 @@ public class Player : NetworkBehaviour{
     [SerializeField] private Vector3 velocity;              // 移動方向
     int stocks = 5;
     bool invincibleflag = false;
-    float deathtime;
+    double deathtime;
     public Rigidbody rb;
     public Text hp;
     public GameObject attackEffect;
     bool allowAttack = true;
-    float attackInterval;
+    double attackInterval;
 
     // Use this for initialization
     void Start () {
@@ -42,26 +42,7 @@ public class Player : NetworkBehaviour{
         //攻撃処理
 
         if (Input.GetKey(KeyCode.Space) && allowAttack){
-            GameObject attackObject = Instantiate(attackEffect) as GameObject; 
-           
-            float x = Mathf.Round(transform.position.x/10)*10;
-            float z = Mathf.Round(transform.position.z/10)*10;
-
-
-            Vector3 forword = transform.forward * -10;
-            attackObject.transform.position = new Vector3(x, transform.position.y-0.5f, z) + forword;
-
-            Quaternion rotation = this.transform.localRotation;
-            Vector3 rotationAngles = rotation.eulerAngles;
-            rotationAngles.x = rotationAngles.x + 90.0f;
-            rotationAngles.z = rotationAngles.z + 90.0f;
-            rotationAngles.y = rotationAngles.y + -90.0f;
-
-            rotation = Quaternion.Euler(rotationAngles);
-            attackObject.transform.localRotation = rotation;
-
-            attackInterval = Time.time;
-            allowAttack = false;
+			Cmdfire ();
         }
 
         // いずれかの方向に移動している場合
@@ -108,10 +89,36 @@ public class Player : NetworkBehaviour{
 
         //攻撃のインターバル
         if (!(allowAttack)){
-            if( (attackInterval+1.5) < Time.time){
+			if( (attackInterval+1.5) < Time.time){
                 allowAttack = true;
             }
         }
 
     }
+
+	[Command]
+	void Cmdfire(){
+		GameObject attackObject = Instantiate(attackEffect) as GameObject; 
+
+		NetworkServer.Spawn (attackObject);
+
+		float x = Mathf.Round(transform.position.x/10)*10;
+		float z = Mathf.Round(transform.position.z/10)*10;
+
+
+		Vector3 forword = transform.forward * -10;
+		attackObject.transform.position = new Vector3(x, transform.position.y-0.5f, z) + forword;
+
+		Quaternion rotation = this.transform.localRotation;
+		Vector3 rotationAngles = rotation.eulerAngles;
+		rotationAngles.x = rotationAngles.x + 90.0f;
+		rotationAngles.z = rotationAngles.z + 90.0f;
+		rotationAngles.y = rotationAngles.y + -90.0f;
+
+		rotation = Quaternion.Euler(rotationAngles);
+		attackObject.transform.localRotation = rotation;
+
+		attackInterval = Time.time;
+		allowAttack = false;
+	}
 }

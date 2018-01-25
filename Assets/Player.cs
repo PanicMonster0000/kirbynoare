@@ -6,14 +6,15 @@ using UnityEngine.Networking;
 
 public class Player : NetworkBehaviour{
     [SerializeField] private Vector3 velocity;              // 移動方向
-    int stocks = 5;
     bool invincibleflag = false;
     double deathtime;
     public Rigidbody rb;
     public Text hp;
     public GameObject attackEffect;
+	public GameObject playerhp;
     bool allowAttack = true;
     double attackInterval;
+	int stocks = 5;
 
     // Use this for initialization
     void Start () {
@@ -63,7 +64,6 @@ public class Player : NetworkBehaviour{
             print(stocks);
             if(stocks == 0) {
                 Destroy(gameObject);
-                hp.text = "";
             } else {
                 Vector3 pos = transform.position;
                 pos.x = Random.Range(5,75);
@@ -74,10 +74,8 @@ public class Player : NetworkBehaviour{
                 rb.useGravity = false;
                 rb.constraints = RigidbodyConstraints.FreezePositionY;
                 invincibleflag = true;
-                hp.text = "";
-                for(int i=0;i<stocks;i++) {
-                    hp.text += "■";
-                }
+				hp.text = "";
+				hp.text = "Player1:" + stocks.ToString ();
             }
         }
         if(invincibleflag){
@@ -92,7 +90,6 @@ public class Player : NetworkBehaviour{
         //攻撃のインターバル
         if (!(allowAttack)){
 			if( (attackInterval+1.5) < Time.time){
-                print("allow attack");
                 allowAttack = true;
             }
         }

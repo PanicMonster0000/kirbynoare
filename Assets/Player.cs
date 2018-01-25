@@ -43,6 +43,8 @@ public class Player : NetworkBehaviour{
 
         if (Input.GetKey(KeyCode.Space) && allowAttack){
 			Cmdfire ();
+            attackInterval = Time.time;
+            allowAttack = false;
         }
 
         // いずれかの方向に移動している場合
@@ -90,6 +92,7 @@ public class Player : NetworkBehaviour{
         //攻撃のインターバル
         if (!(allowAttack)){
 			if( (attackInterval+1.5) < Time.time){
+                print("allow attack");
                 allowAttack = true;
             }
         }
@@ -97,6 +100,7 @@ public class Player : NetworkBehaviour{
     }
 
 	[Command]
+    [Server]
 	void Cmdfire(){
 		GameObject attackObject = Instantiate(attackEffect) as GameObject; 
 
@@ -117,8 +121,5 @@ public class Player : NetworkBehaviour{
 
 		rotation = Quaternion.Euler(rotationAngles);
 		attackObject.transform.localRotation = rotation;
-
-		attackInterval = Time.time;
-		allowAttack = false;
 	}
 }

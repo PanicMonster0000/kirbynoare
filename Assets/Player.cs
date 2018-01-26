@@ -9,16 +9,22 @@ public class Player : NetworkBehaviour{
     bool invincibleflag = false;
     double deathtime;
     public Rigidbody rb;
-    public Text hp;
+	public Text pre;
     public GameObject attackEffect;
-	public GameObject playerhp;
+	public Text hp;
     bool allowAttack = true;
     double attackInterval;
-	int stocks = 5;
+	[SyncVar(hook = "Synchp")]public int stocks = 5;
 
     // Use this for initialization
     void Start () {
 		rb = GetComponent<Rigidbody>();
+		hp = Instantiate (pre,new Vector3(0,0,-93.3820251f),pre.transform.rotation,GameObject.Find ("Canvas").transform);
+		hp.transform.localScale = (new Vector3(0.15f,0.15f,0.2f));
+		hp.transform.localRotation = new Quaternion (0, 0, 0, 1);
+		hp.rectTransform.anchorMax = new Vector2 (0.15f * netId.Value, 1f);
+		hp.rectTransform.anchorMin = new Vector2 (0.15f * netId.Value, 1f);
+		hp.text = maketext ();
 	}
 	
 	// Update is called once per frame
@@ -74,8 +80,9 @@ public class Player : NetworkBehaviour{
                 rb.useGravity = false;
                 rb.constraints = RigidbodyConstraints.FreezePositionY;
                 invincibleflag = true;
-				hp.text = "";
-				hp.text = "Player1:" + stocks.ToString ();
+				hp.text = maketext ();
+				if (!isServer)
+					Cmdhp (stocks);
             }
         }
         if(invincibleflag){
@@ -96,6 +103,10 @@ public class Player : NetworkBehaviour{
 
     }
 
+	void OnDestroy() {
+		Destroy (hp);
+	}
+
 	[Command]
     [Server]
 	void Cmdfire(){
@@ -115,8 +126,27 @@ public class Player : NetworkBehaviour{
 		rotationAngles.x = rotationAngles.x + 90.0f;
 		rotationAngles.z = rotationAngles.z + 90.0f;
 		rotationAngles.y = rotationAngles.y + -90.0f;
-
 		rotation = Quaternion.Euler(rotationAngles);
 		attackObject.transform.localRotation = rotation;
+	}
+
+	void Synchp(int stocks) {
+		hp.text = maketext();
+	}
+
+	[Command]
+	void Cmdhp(int sersto){
+		stocks = sersto;
+		hp.text = maketext();
+
+	}
+
+	string maketext(){
+		string text = "";
+		text = "player" + netId.ToString() + "\n";
+		for (int i = 0; i < stocks; i++) {
+			text += "■";
+		}
+		return text;
 	}
 }

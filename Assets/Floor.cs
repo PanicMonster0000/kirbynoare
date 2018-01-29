@@ -25,16 +25,13 @@ public class Floor : MonoBehaviour
             floorrb.constraints = RigidbodyConstraints.FreezeAll;
             fall = false;
         }
-        if(fall)
-        {
+        if(fall){
             transform.Translate(0, -1, 0);
         }
     }
-    IEnumerator OnCollisionEnter(Collision wave)
-    {
+    IEnumerator OnCollisionEnter(Collision wave){
 
-        if (wave.gameObject.name == "attackEffect(Clone)")
-        {
+        if (wave.gameObject.name == "attackEffect(Clone)"){
             Renderer colRend = wave.gameObject.GetComponent<Renderer>();
             rend.material.SetColor("_Color", colRend.material.GetColor("_Color"));
             yield return new WaitForSecondsRealtime(1f);
@@ -42,4 +39,16 @@ public class Floor : MonoBehaviour
             fall = true;
         }
     }
+
+    void OnCollisionStay(Collision collision){
+        if (fall && collision.gameObject.name == "Player(Clone)")
+        {
+            collision.transform.Translate(0, -3, 0);
+            //transform.Translate(0, -1, 0);
+        }
+
+
+
+    }
+
 }

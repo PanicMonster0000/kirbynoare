@@ -14,11 +14,14 @@ public class Player : NetworkBehaviour{
 	public Text hp;
     bool allowAttack = true;
     double attackInterval;
-	[SyncVar(hook = "Synchp")]public int stocks = 5;
+    public Color playerColor;
+    [SyncVar(hook = "Synchp")]public int stocks = 5;
 
     // Use this for initialization
     void Start () {
-		rb = GetComponent<Rigidbody>();
+       // playerColor = new Color(netId.Value, netId.Value,  netId.Value, 1.0f);
+       // ChangeColorOfGameObject(this.gameObject, playerColor);
+        rb = GetComponent<Rigidbody>();
 		hp = Instantiate (pre,new Vector3(0,0,-93.3820251f),pre.transform.rotation,GameObject.Find ("Canvas").transform);
 		hp.transform.localScale = (new Vector3(0.15f,0.15f,0.2f));
 		hp.transform.localRotation = new Quaternion (0, 0, 0, 1);
@@ -36,13 +39,13 @@ public class Player : NetworkBehaviour{
         velocity = Vector3.zero;
 
             if (Input.GetKey(KeyCode.W)) 
-                velocity.z += 1;
+                velocity.z += 0.5f;
             else if (Input.GetKey(KeyCode.A))
-                velocity.x -= 1;
+                velocity.x -= 0.5f;
             else if (Input.GetKey(KeyCode.S))
-                velocity.z -= 1;
+                velocity.z -= 0.5f;
             else if (Input.GetKey(KeyCode.D))
-                velocity.x += 1;
+                velocity.x += 0.5f;
 
 
 
@@ -73,18 +76,24 @@ public class Player : NetworkBehaviour{
             } else {
                 Vector3 pos = transform.position;
                 pos.x = Random.Range(5,75);
-                pos.y = 10;
+                pos.y = 7;
                 pos.z = Random.Range(5,75);
                 transform.position = pos;
                 deathtime = Time.time;
                 rb.useGravity = false;
                 rb.constraints = RigidbodyConstraints.FreezePositionY;
                 invincibleflag = true;
-				hp.text = maketext ();
-				if (!isServer)
-					Cmdhp (stocks);
+
+                if (!isServer)
+                    Cmdhp(stocks);
+                else
+                    RpcChangeStock(stocks);
+                
+
             }
         }
+
+
         if(invincibleflag){
             if((deathtime + 3) < Time.time){
                 rb.useGravity = true;
@@ -120,8 +129,10 @@ public class Player : NetworkBehaviour{
 
 		Vector3 forword = transform.forward * -10;
 		attackObject.transform.position = new Vector3(x, transform.position.y-0.5f, z) + forword;
+        Renderer atren = attackObject.GetComponent<Renderer>();
+        atren.material.color = playerColor;
 
-		Quaternion rotation = this.transform.localRotation;
+        Quaternion rotation = this.transform.localRotation;
 		Vector3 rotationAngles = rotation.eulerAngles;
 		rotationAngles.x = rotationAngles.x + 90.0f;
 		rotationAngles.z = rotationAngles.z + 90.0f;
@@ -138,8 +149,13 @@ public class Player : NetworkBehaviour{
 	void Cmdhp(int sersto){
 		stocks = sersto;
 		hp.text = maketext();
-
 	}
+
+    [ClientRpc]
+    void RpcChangeStock(int stock){
+        stocks = stock;
+        hp.text = maketext();
+    }
 
 	string maketext(){
 		string text = "";
@@ -149,4 +165,24 @@ public class Player : NetworkBehaviour{
 		}
 		return text;
 	}
+
+    void ChangeColorOfGameObject(GameObject targetObject, Color color)
+    {
+
+        //入力されたオブジェクトのRendererを全て取得し、さらにそのRendererに設定されている全Materialの色を変える
+        foreach (Renderer targetRenderer in targetObject.GetComponents<Renderer>())
+        {
+            foreach (Material material in targetRenderer.materials)
+            {
+                material.color = color;
+            }
+        }
+
+        //入力されたオブジェクトの子にも同様の処理を行う
+        for (int i = 0; i < targetObject.transform.childCount; i++)
+        {
+            ChangeColorOfGameObject(targetObject.transform.GetChild(i).gameObject, color);
+        }
+
+    }
 }

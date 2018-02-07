@@ -43,7 +43,7 @@ public class Floor : MonoBehaviour
     void OnCollisionStay(Collision collision){
         if (fall && collision.gameObject.name == "Player(Clone)")
         {
-            collision.transform.Translate(0, -3, 0);
+            collision.transform.Translate(0, -1, 0);
             //transform.Translate(0, -1, 0);
         }
 

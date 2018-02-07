@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Networking;
+using System.ComponentModel;
 
-public class Player : NetworkBehaviour{
+public class Player : NetworkBehaviour {
     [SerializeField] private Vector3 velocity;              // 移動方向
-    bool invincibleflag = false;
+    public bool invincibleflag = false;
     double deathtime;
-    public Rigidbody rb;
+
+    //SyncListStruct<Rigidbody> test;
+    Rigidbody rb;
 	public Text pre;
     public GameObject attackEffect;
 	public Text hp;
@@ -19,8 +22,20 @@ public class Player : NetworkBehaviour{
 
     // Use this for initialization
     void Start () {
-       // playerColor = new Color(netId.Value, netId.Value,  netId.Value, 1.0f);
-       // ChangeColorOfGameObject(this.gameObject, playerColor);
+        
+        switch (this.netId.Value) {
+            case 1:
+                playerColor = Color.red; break;
+            case 2:
+                playerColor = Color.blue; break;
+            case 3:
+                playerColor = Color.yellow; break;
+            case 4:
+                playerColor = Color.green; break;
+        }
+
+        ChangeColorOfGameObject(this.gameObject, playerColor);
+
         rb = GetComponent<Rigidbody>();
 		hp = Instantiate (pre,new Vector3(0,0,-93.3820251f),pre.transform.rotation,GameObject.Find ("Canvas").transform);
 		hp.transform.localScale = (new Vector3(0.15f,0.15f,0.2f));
@@ -39,13 +54,13 @@ public class Player : NetworkBehaviour{
         velocity = Vector3.zero;
 
             if (Input.GetKey(KeyCode.W)) 
-                velocity.z += 0.5f;
+                velocity.z += 0.3f;
             else if (Input.GetKey(KeyCode.A))
-                velocity.x -= 0.5f;
+                velocity.x -= 0.3f;
             else if (Input.GetKey(KeyCode.S))
-                velocity.z -= 0.5f;
+                velocity.z -= 0.3f;
             else if (Input.GetKey(KeyCode.D))
-                velocity.x += 0.5f;
+                velocity.x += 0.3f;
 
 
 
@@ -68,38 +83,38 @@ public class Player : NetworkBehaviour{
             // 移動方向ベクトル(velocity)を足し込みます
             transform.position += velocity;
         }
+
+        if (rb.transform.position.y < 0.0) {
+            rb.transform.Translate(0f, -0.5f, 0f);
+        }
+
+
         if (transform.position.y < -60) {
             stocks--;
-            print(stocks);
             if(stocks == 0) {
-                Destroy(gameObject);
+                CmdDestroy(this.gameObject);
             } else {
                 Vector3 pos = transform.position;
                 pos.x = Random.Range(5,75);
-                pos.y = 7;
+                pos.y = 8;
                 pos.z = Random.Range(5,75);
                 transform.position = pos;
                 deathtime = Time.time;
-                rb.useGravity = false;
-                rb.constraints = RigidbodyConstraints.FreezePositionY;
                 invincibleflag = true;
-
+                CmdSwitchRb(invincibleflag);
+                
                 if (!isServer)
                     Cmdhp(stocks);
-                else
-                    RpcChangeStock(stocks);
                 
-
             }
         }
 
 
         if(invincibleflag){
             if((deathtime + 3) < Time.time){
-                rb.useGravity = true;
                 invincibleflag = false;
-                rb.constraints = RigidbodyConstraints.None;
-                rb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotation;
+                CmdSwitchRb(invincibleflag);
+
             }
         }
 
@@ -112,25 +127,38 @@ public class Player : NetworkBehaviour{
 
     }
 
-	void OnDestroy() {
-		Destroy (hp);
-	}
 
-	[Command]
+    [Command]
+    void CmdDestroy(GameObject player) {
+        Destroy(player);
+		Destroy (hp);
+        RpcDestroy(player);
+
+    }
+
+    [ClientRpc]
+    void RpcDestroy(GameObject player)
+    {
+        Destroy(player);
+        Destroy(hp);
+    }
+
+    [Command]
     [Server]
 	void Cmdfire(){
 		GameObject attackObject = Instantiate(attackEffect) as GameObject; 
 
 		NetworkServer.Spawn (attackObject);
+        CmdChangeColorOfGameObject(attackObject, this.playerColor);
 
-		float x = Mathf.Round(transform.position.x/10)*10;
+        float x = Mathf.Round(transform.position.x/10)*10;
 		float z = Mathf.Round(transform.position.z/10)*10;
 
 
 		Vector3 forword = transform.forward * -10;
 		attackObject.transform.position = new Vector3(x, transform.position.y-0.5f, z) + forword;
-        Renderer atren = attackObject.GetComponent<Renderer>();
-        atren.material.color = playerColor;
+        //Renderer atren = attackObject.GetComponent<Renderer>();
+       // atren.material.color = playerColor;
 
         Quaternion rotation = this.transform.localRotation;
 		Vector3 rotationAngles = rotation.eulerAngles;
@@ -141,21 +169,50 @@ public class Player : NetworkBehaviour{
 		attackObject.transform.localRotation = rotation;
 	}
 
-	void Synchp(int stocks) {
+    [Command]
+    [Server]
+    void CmdSwitchRb(bool flag){
+        if (invincibleflag)
+        {
+            rb.constraints = RigidbodyConstraints.FreezeAll;
+        }
+        else
+        {
+            rb.constraints = RigidbodyConstraints.None;
+            rb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotation;
+        }
+        RpcSwitchRb(flag);
+
+    }
+
+    [ClientRpc]
+    void RpcSwitchRb(bool flag){
+        print("Rpc");
+        print(rb.position);
+
+        if (flag)
+        {
+            rb.constraints = RigidbodyConstraints.FreezeAll;
+        }
+        else
+        {
+            rb.constraints = RigidbodyConstraints.None;
+            rb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotation;
+        }
+    }
+
+
+
+    void Synchp(int stocks) {
+        this.stocks = stocks;
 		hp.text = maketext();
 	}
-
+    
 	[Command]
 	void Cmdhp(int sersto){
 		stocks = sersto;
 		hp.text = maketext();
 	}
-
-    [ClientRpc]
-    void RpcChangeStock(int stock){
-        stocks = stock;
-        hp.text = maketext();
-    }
 
 	string maketext(){
 		string text = "";
@@ -165,6 +222,17 @@ public class Player : NetworkBehaviour{
 		}
 		return text;
 	}
+
+    [Command]
+    void CmdChangeColorOfGameObject(GameObject obj, Color color){
+        ChangeColorOfGameObject(obj, color);
+        RpcChangeColor(obj, color);
+    }
+
+    [ClientRpc]
+    void RpcChangeColor(GameObject obj, Color color){
+        ChangeColorOfGameObject(obj, color);
+    }
 
     void ChangeColorOfGameObject(GameObject targetObject, Color color)
     {
